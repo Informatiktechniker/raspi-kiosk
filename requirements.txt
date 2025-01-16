@@ -1,0 +1,4 @@
+packaging~=24.2
+python-dotenv~=1.0.1
+selenium~=4.27.1
+webdriver-manager~=4.0.2
