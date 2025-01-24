@@ -1,3 +1,8 @@
+<<<<<<< HEAD
 .idea
 *.iml
 .env
+=======
+.venv
+pw.txt
+>>>>>>> 22f3c3e (added logic to shutdown)

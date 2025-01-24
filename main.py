@@ -1,12 +1,12 @@
 import os
 import sys
 import time
+import datetime
 
-from dotenv import load_dotenv
+from selenium import webdriver
 from selenium.webdriver import Chrome, ChromeOptions
-from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 
 
 class Browser:
@@ -20,8 +20,8 @@ class Browser:
 
         prefs = {"credentials_enable_service": False, "profile.password_manager_enabled": False}
         options.add_experimental_option("prefs", prefs)
-
-        self.browser = Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+        
+        self.browser = webdriver.Chrome(options=options)
 
     def open_page(self, url):
         self.browser.get(url)
@@ -32,15 +32,13 @@ class Browser:
     def refresh(self):
         self.browser.refresh()
 
-    def add_input(self, by: By, value, text):
+    def add_input(self, by, value, text):
         field = self.browser.find_element(by=by, value=value)
         field.send_keys(text)
-        time.sleep(1)
 
-    def click_submit(self, by: By, value: str):
+    def click_submit(self, by, value: str):
         button = self.browser.find_element(by=by, value=value)
         button.click()
-        time.sleep(1)
 
     def login(self, password: str):
         self.add_input(by=By.CLASS_NAME, value='form-control', text=password)
@@ -48,12 +46,10 @@ class Browser:
 
 
 def get_password():
-    pw = os.environ.get("DIGIKABU_PASSWORD")
-    if pw == None:
-        load_dotenv()
-        pw = os.getenv("DIGIKABU_PASSWORD")
-
-    return pw
+	with open(f"/home/bszw/Documents/raspi-kiosk/pw.txt", newline='') as f:
+		reader = csv.reader(f, delimiter=';', quotechar=' ')
+		for row in reader:
+			return row[0]
 
 
 def main(args):
@@ -64,14 +60,23 @@ if __name__ == '__main__':
     try:
         url = sys.argv[1]
     except:
-        url = "https://google.de"
+        url = "https://google.de" #Default
 
     browser = Browser()
     browser.open_page(url)
-    time.sleep(1)
 
     browser.login(get_password())
 
     while (1):
         browser.refresh()
+
+        now = datetime.datetime.now()
+        
+        #Kritisch: Was ist, wenn man den Raspberry nach 18 Uhr startet, schaltet er sich gleich wieder ab!
+        today6pm = now.replace(hour=17, minute=59, second=0, microsecond=0)
+        
+        if now > today6pm:
+            #os.system('sudo shutdown -h 0')
+            print("SHUTDOWN")
+
         time.sleep(10)
